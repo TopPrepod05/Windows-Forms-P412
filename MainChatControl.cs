@@ -107,5 +107,12 @@ namespace WinForms02
             Control lastControl = messagesPanel.Controls[messagesPanel.Controls.Count - 1];
             messagesPanel.ScrollControlIntoView(lastControl);
         }
+
+        public void SendState(bool isSending)
+        {
+            sendButton.Enabled = !isSending;
+            sendMsgBox.Enabled = !isSending;
+            sendButton.Text = isSending ? "..." : ">";
+        }
     }
 }

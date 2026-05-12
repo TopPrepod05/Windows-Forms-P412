@@ -35,7 +35,7 @@ namespace WinForms02
 
             mainChatControl.NewChatRequested += CreateNewChat;
             mainChatControl.ChatSelected += SelectChat;
-            mainChatControl.MessageSendRequested += AddTestMessage;
+            mainChatControl.MessageSendRequested += async text => await SendMessageToAi(text);
 
             ShowRegister();
         }
@@ -179,6 +179,75 @@ namespace WinForms02
 
             DatabaseService.Save(database);
             RefreshMainChat();
+        }
+
+        private void LimitChatHistory(AiChat chat)
+        {
+            int maxMessages = 100;
+            if (chat.Messages.Count <= maxMessages) return;
+            int removeCount = chat.Messages.Count - maxMessages;
+            chat.Messages.RemoveRange(1, removeCount);
+        }
+
+        private async Task SendMessageToAi(string text)
+        {
+            if (currentChat == null || currentUser == null)
+            {
+                MessageBox.Show("Пользователь не вошёл в акканут или чат не выбран!", "Да-Да-Да");
+                return;
+            }
+
+            currentChat.Messages.Add(new()
+            {
+                Role = "user",
+                Content = text
+            });
+
+            if (currentChat.Title == "Новый чат")
+            {
+                currentChat.Title = text.Length > 20
+                                ? string.Concat(text.AsSpan(0, 20), "...")
+                                : text;
+            }
+
+            DatabaseService.Save(database);
+            RefreshMainChat();
+
+            try
+            {
+                mainChatControl.SendState(true);
+                string? answer = await AiService.SendAsync(currentChat.Messages);
+                if (string.IsNullOrWhiteSpace(answer))
+                {
+                    currentChat.Messages.RemoveAt(currentChat.Messages.Count - 1);
+                    DatabaseService.Save(database);
+                    RefreshMainChat();
+                    MessageBox.Show("Нейронка не ответила :<");
+                    return;
+                }
+
+                currentChat.Messages.Add(new()
+                {
+                    Role = "assistant",
+                    Content = answer
+                });
+
+                LimitChatHistory(currentChat);
+                DatabaseService.Save(database);
+                RefreshMainChat();
+            }
+            catch (Exception ex)
+            {
+                currentChat.Messages.RemoveAt(currentChat.Messages.Count - 1);
+                DatabaseService.Save(database);
+                RefreshMainChat();
+                MessageBox.Show(ex.Message);
+            }
+            finally
+            {
+                mainChatControl.SendState(false);
+            }
+
         }
 
     }

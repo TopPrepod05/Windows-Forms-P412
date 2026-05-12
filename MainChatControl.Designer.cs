@@ -323,11 +323,14 @@
             // 
             // messagesPanel
             // 
+            messagesPanel.AutoScroll = true;
             messagesPanel.Dock = DockStyle.Fill;
+            messagesPanel.FlowDirection = FlowDirection.TopDown;
             messagesPanel.Location = new Point(3, 109);
             messagesPanel.Name = "messagesPanel";
             messagesPanel.Size = new Size(619, 540);
             messagesPanel.TabIndex = 2;
+            messagesPanel.WrapContents = false;
             // 
             // MainChatControl
             // 
