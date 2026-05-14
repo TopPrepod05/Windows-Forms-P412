@@ -8,7 +8,7 @@ namespace WinForms02.Services;
 
 public static class AiService
 {
-    private static readonly string helicopter = "";//"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";
+    private static readonly string helicopter = "";
     public static async Task<string?> SendAsync(List<ChatMessage> messages)
     {
         using HttpClient client = new();
